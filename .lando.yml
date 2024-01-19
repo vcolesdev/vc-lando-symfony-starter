@@ -1,0 +1,42 @@
+name: vclando-symfony
+recipe: symfony
+config:
+  php: 8.2
+  webroot: application/public
+
+services:
+  appserver:
+    type: php:8.2
+    via: apache:2.4
+    run:
+      - bash ./bin/install.sh
+  phpmyadmin:
+    type: phpmyadmin
+  mailhog:
+    type: mailhog
+    hogfrom:
+      - appserver
+
+proxy:
+  mailhog:
+    - mail.vclando-symfony.lndo.site
+  phpmyadmin:
+    - pma.vclando-symfony.lndo.site
+
+tooling:
+  diff:
+    service: appserver
+    description: Generate a database migration by comparing your current database to your mapping information.
+    cmd: php bin/console doctrine:migrations:diff
+  migrate:
+    service: appserver
+    description: Execuste a database migration to a specified version or the latest available version.
+    cmd: php bin/console doctrine:migrations:migrate
+  cache:clear:
+    service: appserver
+    description: Clears Symfony cache.
+    cmd: php bin/console cache:clear
+  cache:warmup:
+    service: appserver
+    description: Warms Symfony cache
+    cmd: php bin/console cache:warmup
